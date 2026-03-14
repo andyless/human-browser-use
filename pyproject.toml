@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "human-browser-use"
-version = "0.2.0"
+version = "0.2.1"
 description = "Human-like browser automation extension for browser-use"
 readme = "README.md"
 license = "MIT"
