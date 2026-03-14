@@ -1,0 +1,483 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mouse Trajectory Visualizer</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: #f5f5f5;
+    overflow: hidden;
+    height: 100vh;
+    cursor: crosshair;
+  }
+
+  #trail-canvas {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    pointer-events: none;
+    z-index: 1000;
+  }
+
+  .search-page {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
+    position: relative;
+    z-index: 1;
+  }
+
+  .logo {
+    font-size: 92px;
+    font-weight: 700;
+    margin-bottom: 30px;
+    letter-spacing: -2px;
+    user-select: none;
+  }
+  .logo span:nth-child(1) { color: #4285F4; }
+  .logo span:nth-child(2) { color: #EA4335; }
+  .logo span:nth-child(3) { color: #FBBC05; }
+  .logo span:nth-child(4) { color: #4285F4; }
+  .logo span:nth-child(5) { color: #34A853; }
+  .logo span:nth-child(6) { color: #EA4335; }
+
+  .search-box {
+    display: flex;
+    align-items: center;
+    width: 580px;
+    max-width: 90vw;
+    height: 46px;
+    border: 1px solid #dfe1e5;
+    border-radius: 24px;
+    padding: 0 16px;
+    background: #fff;
+    box-shadow: 0 1px 6px rgba(32,33,36,.1);
+    transition: box-shadow .2s;
+  }
+  .search-box:hover, .search-box:focus-within {
+    box-shadow: 0 2px 8px rgba(32,33,36,.2);
+  }
+
+  .search-icon {
+    width: 20px; height: 20px;
+    margin-right: 12px;
+    color: #9aa0a6;
+  }
+
+  .search-input {
+    flex: 1;
+    border: none;
+    outline: none;
+    font-size: 16px;
+    color: #202124;
+    background: transparent;
+  }
+  .search-input::placeholder { color: #9aa0a6; }
+
+  .buttons {
+    margin-top: 28px;
+    display: flex;
+    gap: 12px;
+  }
+  .btn {
+    height: 36px;
+    padding: 0 16px;
+    border: 1px solid #f5f5f5;
+    border-radius: 4px;
+    background: #f8f9fa;
+    color: #3c4043;
+    font-size: 14px;
+    cursor: pointer;
+    user-select: none;
+  }
+  .btn:hover { border-color: #dadce0; box-shadow: 0 1px 1px rgba(0,0,0,.04); }
+
+  .controls {
+    position: fixed;
+    top: 12px; right: 12px;
+    z-index: 2000;
+    display: flex;
+    gap: 8px;
+  }
+  .ctrl-btn {
+    padding: 6px 14px;
+    border: none;
+    border-radius: 6px;
+    font-size: 13px;
+    cursor: pointer;
+    color: #fff;
+    transition: opacity .15s;
+  }
+  .ctrl-btn:hover { opacity: .85; }
+  .ctrl-btn.clear { background: #EA4335; }
+  .ctrl-btn.toggle { background: #34A853; }
+  .ctrl-btn.export { background: #4285F4; }
+
+  .stats {
+    position: fixed;
+    bottom: 12px; left: 12px;
+    z-index: 2000;
+    background: rgba(0,0,0,.75);
+    color: #fff;
+    padding: 10px 16px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-family: 'Consolas', monospace;
+    line-height: 1.6;
+    pointer-events: none;
+  }
+
+  .key-log {
+    position: fixed;
+    top: 12px; left: 12px;
+    z-index: 2000;
+    width: 320px;
+    max-height: 45vh;
+    background: rgba(0,0,0,.82);
+    color: #fff;
+    border-radius: 8px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+  .key-log-header {
+    padding: 8px 12px;
+    font-size: 13px;
+    font-weight: 600;
+    border-bottom: 1px solid rgba(255,255,255,.15);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-shrink: 0;
+  }
+  .key-log-header span { opacity: .6; font-weight: 400; font-size: 11px; }
+  .key-log-body {
+    overflow-y: auto;
+    padding: 6px 0;
+    flex: 1;
+    font-family: 'Consolas', monospace;
+    font-size: 12px;
+    line-height: 1.5;
+  }
+  .key-log-body::-webkit-scrollbar { width: 4px; }
+  .key-log-body::-webkit-scrollbar-thumb { background: rgba(255,255,255,.25); border-radius: 2px; }
+  .key-entry {
+    padding: 2px 12px;
+    display: flex;
+    gap: 8px;
+    align-items: baseline;
+  }
+  .key-entry:hover { background: rgba(255,255,255,.06); }
+  .key-entry .ke-type {
+    font-size: 10px;
+    padding: 1px 5px;
+    border-radius: 3px;
+    font-weight: 600;
+    flex-shrink: 0;
+    width: 52px;
+    text-align: center;
+  }
+  .ke-keydown .ke-type { background: #4285F4; }
+  .ke-keyup .ke-type { background: #9aa0a6; }
+  .key-entry .ke-key {
+    color: #FBBC05;
+    font-weight: 600;
+    min-width: 60px;
+  }
+  .key-entry .ke-detail {
+    color: rgba(255,255,255,.55);
+    font-size: 11px;
+  }
+  .key-entry .ke-interval {
+    color: rgba(255,255,255,.4);
+    font-size: 10px;
+    margin-left: auto;
+    flex-shrink: 0;
+  }
+
+  .legend {
+    position: fixed;
+    bottom: 12px; right: 12px;
+    z-index: 2000;
+    background: rgba(0,0,0,.75);
+    color: #fff;
+    padding: 10px 16px;
+    border-radius: 8px;
+    font-size: 13px;
+    line-height: 1.8;
+    pointer-events: none;
+  }
+  .legend-item { display: flex; align-items: center; gap: 8px; }
+  .legend-dot {
+    width: 10px; height: 10px;
+    border-radius: 50%;
+    display: inline-block;
+    flex-shrink: 0;
+  }
+  .legend-line {
+    width: 24px; height: 3px;
+    display: inline-block;
+    flex-shrink: 0;
+    border-radius: 2px;
+  }
+</style>
+</head>
+<body>
+
+<canvas id="trail-canvas"></canvas>
+
+<div class="search-page">
+  <div class="logo">
+    <span>S</span><span>e</span><span>a</span><span>r</span><span>c</span><span>h</span>
+  </div>
+  <div class="search-box">
+    <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/>
+    </svg>
+    <input class="search-input" type="text" placeholder="Type to search...">
+  </div>
+  <div class="buttons">
+    <button class="btn">Search</button>
+    <button class="btn">I'm Feeling Lucky</button>
+  </div>
+</div>
+
+<div class="key-log">
+  <div class="key-log-header">Keyboard Events <span id="keyCount">0 events</span></div>
+  <div class="key-log-body" id="keyLogBody"></div>
+</div>
+
+<div class="controls">
+  <button class="ctrl-btn toggle" id="toggleBtn" onclick="toggleTrail()">Pause</button>
+  <button class="ctrl-btn clear" onclick="clearTrail()">Clear</button>
+  <button class="ctrl-btn export" onclick="exportImage()">Export</button>
+</div>
+
+<div class="stats" id="stats">
+  Position: (0, 0)<br>
+  Speed: 0 px/ms<br>
+  Distance: 0 px<br>
+  Clicks: 0<br>
+  Trail points: 0
+</div>
+
+<div class="legend">
+  <div class="legend-item"><span class="legend-line" style="background:rgba(66,133,244,.7)"></span> Mouse trail</div>
+  <div class="legend-item"><span class="legend-dot" style="background:#EA4335"></span> Left click</div>
+  <div class="legend-item"><span class="legend-dot" style="background:#FBBC05"></span> Right click</div>
+  <div class="legend-item"><span class="legend-dot" style="background:#34A853"></span> Middle click</div>
+  <div class="legend-item"><span class="legend-line" style="background:rgba(234,67,53,.5)"></span> Speed heatmap (red=fast)</div>
+</div>
+
+<script>
+const canvas = document.getElementById('trail-canvas');
+const ctx = canvas.getContext('2d');
+
+let recording = true;
+let points = [];
+let clicks = [];
+let totalDist = 0;
+let clickCount = 0;
+let lastX = 0, lastY = 0, lastT = 0;
+let currentSpeed = 0;
+
+let W, H;
+function resize() {
+  W = canvas.width = window.innerWidth;
+  H = canvas.height = window.innerHeight;
+  redraw();
+}
+window.addEventListener('resize', resize);
+resize();
+
+document.addEventListener('mousemove', e => {
+  if (!recording) return;
+  const now = performance.now();
+  const dx = e.clientX - lastX;
+  const dy = e.clientY - lastY;
+  const dist = Math.sqrt(dx * dx + dy * dy);
+  const dt = now - lastT;
+
+  if (dt > 0) currentSpeed = dist / dt;
+  if (lastT > 0) totalDist += dist;
+
+  lastX = e.clientX;
+  lastY = e.clientY;
+  lastT = now;
+
+  points.push({ x: e.clientX, y: e.clientY, t: now, speed: currentSpeed });
+
+  updateStats();
+  redraw();
+});
+
+document.addEventListener('mousedown', e => {
+  if (e.target.closest('.controls')) return;
+  clicks.push({ x: e.clientX, y: e.clientY, t: performance.now(), button: e.button, speed: currentSpeed });
+  clickCount++;
+  updateStats();
+  redraw();
+});
+
+document.addEventListener('contextmenu', e => {
+  if (!e.target.closest('.controls')) e.preventDefault();
+});
+
+function updateStats() {
+  document.getElementById('stats').innerHTML =
+    `Position: (${lastX}, ${lastY})<br>` +
+    `Speed: ${currentSpeed.toFixed(2)} px/ms<br>` +
+    `Distance: ${Math.round(totalDist)} px<br>` +
+    `Clicks: ${clickCount}<br>` +
+    `Trail points: ${points.length}`;
+}
+
+function speedColor(speed, alpha) {
+  const t = Math.min(speed / 2, 1);
+  const r = Math.round(66 + (234 - 66) * t);
+  const g = Math.round(133 - 60 * t);
+  const b = Math.round(244 - 200 * t);
+  return `rgba(${r},${g},${b},${alpha})`;
+}
+
+function redraw() {
+  ctx.clearRect(0, 0, W, H);
+
+  if (points.length > 1) {
+    for (let i = 1; i < points.length; i++) {
+      const p0 = points[i - 1];
+      const p1 = points[i];
+      if (p1.t - p0.t > 500) continue;
+
+      ctx.beginPath();
+      ctx.moveTo(p0.x, p0.y);
+      ctx.lineTo(p1.x, p1.y);
+
+      const spd = (p0.speed + p1.speed) / 2;
+      ctx.strokeStyle = speedColor(spd, 0.6);
+      ctx.lineWidth = Math.max(1, 3 - spd);
+      ctx.lineCap = 'round';
+      ctx.stroke();
+    }
+
+    for (let i = 0; i < points.length; i += 3) {
+      const p = points[i];
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, 1.2, 0, Math.PI * 2);
+      ctx.fillStyle = speedColor(p.speed, 0.35);
+      ctx.fill();
+    }
+  }
+
+  for (const c of clicks) {
+    const colors = { 0: '#EA4335', 1: '#34A853', 2: '#FBBC05' };
+    const color = colors[c.button] || '#EA4335';
+
+    ctx.beginPath();
+    ctx.arc(c.x, c.y, 18, 0, Math.PI * 2);
+    ctx.strokeStyle = color;
+    ctx.lineWidth = 1.5;
+    ctx.globalAlpha = 0.4;
+    ctx.stroke();
+    ctx.globalAlpha = 1;
+
+    ctx.beginPath();
+    ctx.moveTo(c.x - 10, c.y);
+    ctx.lineTo(c.x + 10, c.y);
+    ctx.moveTo(c.x, c.y - 10);
+    ctx.lineTo(c.x, c.y + 10);
+    ctx.strokeStyle = color;
+    ctx.lineWidth = 1;
+    ctx.globalAlpha = 0.6;
+    ctx.stroke();
+    ctx.globalAlpha = 1;
+
+    ctx.beginPath();
+    ctx.arc(c.x, c.y, 5, 0, Math.PI * 2);
+    ctx.fillStyle = color;
+    ctx.globalAlpha = 0.8;
+    ctx.fill();
+    ctx.globalAlpha = 1;
+
+    ctx.font = '10px Consolas, monospace';
+    ctx.fillStyle = color;
+    ctx.fillText(`${c.speed.toFixed(1)}`, c.x + 14, c.y - 10);
+  }
+}
+
+let keyEvents = [];
+let lastKeyTime = 0;
+let keyEventCount = 0;
+const keyLogBody = document.getElementById('keyLogBody');
+const keyCountEl = document.getElementById('keyCount');
+
+function formatModifiers(e) {
+  const mods = [];
+  if (e.ctrlKey) mods.push('Ctrl');
+  if (e.altKey) mods.push('Alt');
+  if (e.shiftKey) mods.push('Shift');
+  if (e.metaKey) mods.push('Meta');
+  return mods.length ? mods.join('+') + '+' : '';
+}
+
+function addKeyEntry(type, e) {
+  const now = performance.now();
+  const interval = lastKeyTime ? (now - lastKeyTime).toFixed(0) : '-';
+  lastKeyTime = now;
+  keyEventCount++;
+  keyCountEl.textContent = `${keyEventCount} events`;
+
+  const mods = formatModifiers(e);
+  const keyName = e.key === ' ' ? 'Space' : e.key;
+
+  const entry = document.createElement('div');
+  entry.className = `key-entry ke-${type}`;
+  entry.innerHTML =
+    `<span class="ke-type">${type}</span>` +
+    `<span class="ke-key">${mods}${keyName}</span>` +
+    `<span class="ke-detail">code:${e.code}</span>` +
+    `<span class="ke-interval">${interval}ms</span>`;
+
+  keyLogBody.appendChild(entry);
+  while (keyLogBody.children.length > 200) keyLogBody.removeChild(keyLogBody.firstChild);
+  keyLogBody.scrollTop = keyLogBody.scrollHeight;
+}
+
+document.addEventListener('keydown', e => addKeyEntry('keydown', e));
+document.addEventListener('keyup', e => addKeyEntry('keyup', e));
+
+function toggleTrail() {
+  recording = !recording;
+  const btn = document.getElementById('toggleBtn');
+  btn.textContent = recording ? 'Pause' : 'Resume';
+  btn.style.background = recording ? '#34A853' : '#9aa0a6';
+}
+
+function clearTrail() {
+  points = []; clicks = []; totalDist = 0; clickCount = 0; currentSpeed = 0;
+  keyEvents = []; keyEventCount = 0; lastKeyTime = 0;
+  keyLogBody.innerHTML = ''; keyCountEl.textContent = '0 events';
+  updateStats(); redraw();
+}
+
+function exportImage() {
+  const c = document.createElement('canvas');
+  c.width = W; c.height = H;
+  const x = c.getContext('2d');
+  x.fillStyle = '#f5f5f5';
+  x.fillRect(0, 0, W, H);
+  x.drawImage(canvas, 0, 0);
+  const a = document.createElement('a');
+  a.download = `mouse_trail_${Date.now()}.png`;
+  a.href = c.toDataURL('image/png');
+  a.click();
+}
+</script>
+</body>
+</html>

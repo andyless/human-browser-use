@@ -1,0 +1,42 @@
+[build-system]
+requires = ["setuptools>=68.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "human-browser-use"
+version = "0.1.0"
+description = "Human-like browser automation extension for browser-use"
+readme = "README.md"
+license = "MIT"
+requires-python = ">=3.11"
+authors = [
+    { name = "andyless" },
+]
+keywords = ["browser-use", "automation", "human-like", "anti-detection", "stealth"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Software Development :: Testing",
+    "Topic :: Internet :: WWW/HTTP :: Browsers",
+]
+dependencies = [
+    "browser-use>=0.12.2",
+    "numpy>=1.24.0",
+    "pydantic>=2.0",
+]
+
+[project.urls]
+Homepage = "https://github.com/andyless/human-browser-use"
+Repository = "https://github.com/andyless/human-browser-use"
+Issues = "https://github.com/andyless/human-browser-use/issues"
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0",
+    "pytest-asyncio>=0.21",
+]
