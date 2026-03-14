@@ -26,7 +26,14 @@ A drop-in extension for [browser-use](https://github.com/browser-use/browser-use
 
 <br/>
 
-# 👋 Quickstart
+# 🤖 LLM Quickstart
+
+1. Direct your favorite coding agent (Cursor, Claude Code, etc.) to [skill.md](https://github.com/andyless/human-browser-use/blob/master/skill.md)
+2. Prompt away!
+
+<br/>
+
+# 👋 Human Quickstart
 
 **1. Install with [uv](https://docs.astral.sh/uv/) or pip (Python >= 3.11):**
 

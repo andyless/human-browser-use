@@ -26,7 +26,14 @@
 
 <br/>
 
-# 👋 クイックスタート
+# 🤖 LLM クイックスタート
+
+1. お気に入りのコーディングエージェント（Cursor、Claude Code など）を [skill.md](https://github.com/andyless/human-browser-use/blob/master/skill.md) に向ける
+2. プロンプトを打つだけ！
+
+<br/>
+
+# 👋 手動クイックスタート
 
 **1. [uv](https://docs.astral.sh/uv/) または pip でインストール（Python >= 3.11）：**
 

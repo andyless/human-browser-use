@@ -26,7 +26,14 @@
 
 <br/>
 
-# 👋 快速开始
+# 🤖 LLM 快速开始
+
+1. 把你常用的编程 Agent（Cursor、Claude Code 等）指向 [skill.md](https://github.com/andyless/human-browser-use/blob/master/skill.md)
+2. 直接开始提问！
+
+<br/>
+
+# 👋 手动快速开始
 
 **1. 用 [uv](https://docs.astral.sh/uv/) 或 pip 安装（Python >= 3.11）：**
 
