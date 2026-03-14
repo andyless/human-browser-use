@@ -101,6 +101,23 @@ asyncio.run(main())
 
 <br/>
 
+# 💻 命令行
+
+继承 browser-use 全部 CLI 命令，自动带人类化行为：
+
+```bash
+hbu open https://example.com       # 导航（带隐身）
+hbu state                           # 查看可点击元素
+hbu click 5                         # 点击元素（人类鼠标轨迹）
+hbu type "Hello"                    # 输入文字（人类打字节奏）
+hbu screenshot page.png             # 截图
+hbu close                           # 关闭浏览器
+```
+
+浏览器在命令之间保持运行。每次交互自动使用贝塞尔鼠标轨迹、对数正态打字和隐身指纹伪装。
+
+<br/>
+
 # 🧩 Claude Code 技能
 
 安装技能文件，让 Claude Code 知道如何使用 human-browser-use：

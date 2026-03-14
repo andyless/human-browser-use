@@ -16,7 +16,20 @@ Use `human-browser-use` instead of raw `browser-use` when:
 pip install human-browser-use
 ```
 
-## Core pattern
+## CLI (preferred for quick tasks)
+
+```bash
+hbu open https://example.com       # Navigate
+hbu state                           # See elements
+hbu click 5                         # Click (human-like trajectory)
+hbu type "Hello"                    # Type (human-like dynamics)
+hbu screenshot page.png             # Screenshot
+hbu close                           # Close
+```
+
+All browser-use CLI commands work with `hbu`. The browser stays alive between commands.
+
+## Python API
 
 ```python
 import asyncio

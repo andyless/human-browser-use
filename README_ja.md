@@ -101,6 +101,23 @@ asyncio.run(main())
 
 <br/>
 
+# 💻 CLI
+
+browser-use の全 CLI コマンドを継承、自動的に人間らしい動作付き：
+
+```bash
+hbu open https://example.com       # ナビゲート（ステルス付き）
+hbu state                           # クリック可能な要素を表示
+hbu click 5                         # 要素をクリック（人間らしい軌跡）
+hbu type "Hello"                    # テキスト入力（人間らしいダイナミクス）
+hbu screenshot page.png             # スクリーンショット
+hbu close                           # ブラウザを閉じる
+```
+
+コマンド間でブラウザは起動したまま。すべての操作が自動的にベジエマウス軌跡、対数正規タイピング、ステルスフィンガープリントを使用します。
+
+<br/>
+
 # 🧩 Claude Code スキル
 
 スキルファイルをインストールして、Claude Code に human-browser-use の使い方を教える：

@@ -101,6 +101,23 @@ asyncio.run(main())
 
 <br/>
 
+# 💻 CLI
+
+All browser-use CLI commands, now with human-like behavior:
+
+```bash
+hbu open https://example.com       # Navigate (with stealth)
+hbu state                           # See clickable elements
+hbu click 5                         # Click element (human-like trajectory)
+hbu type "Hello"                    # Type text (human-like dynamics)
+hbu screenshot page.png             # Take screenshot
+hbu close                           # Close browser
+```
+
+The CLI keeps the browser alive between commands. Every interaction automatically uses Bezier mouse trajectories, lognormal typing, and stealth fingerprint masking.
+
+<br/>
+
 # 🧩 Claude Code Skill
 
 Install the skill so Claude Code knows how to use human-browser-use:
